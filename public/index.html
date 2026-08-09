@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schrödinger's Box</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 100%);
+            color: white;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Лента победителей */
+        .winners-feed {
+            background: rgba(168, 85, 247, 0.1);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .winners-feed h3 {
+            color: #a855f7;
+            font-size: 14px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .winner-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-size: 13px;
+            animation: slideIn 0.5s ease;
+        }
+
+        .winner-item:last-child {
+            border-bottom: none;
+        }
+
+        .winner-item.epic {
+            color: #a855f7;
+            text-shadow: 0 0 10px rgba(168, 85, 247, 0.5);
+        }
+
+        .winner-item.legendary {
+            color: #fbbf24;
+            text-shadow: 0 0 10px rgba(251, 191, 36, 0.5);
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* Баланс */
+        .balance {
+            background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%);
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .balance h2 {
+            font-size: 32px;
+            margin-bottom: 5px;
+        }
+
+        .balance p {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+
+        /* Коробки */
+        .boxes-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .box {
+            aspect-ratio: 1;
+            background: linear-gradient(135deg, #1e1e2e 0%, #2a2a3e 100%);
+            border: 2px solid #a855f7;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .box:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(168, 85, 247, 0.5);
+        }
+
+        .box.opened {
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        .box.selected {
+            border-color: #fbbf24;
+            box-shadow: 0 0 20px rgba(251, 191, 36, 0.5);
+        }
+
+        /* Кнопки */
+        .btn {
+            width: 100%;
+            padding: 18px;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 30px rgba(168, 85, 247, 0.5);
+        }
+
+        .btn-secondary {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        /* Модальное окно результата */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #1e1e2e 0%, #2a2a3e 100%);
+            border: 3px solid #a855f7;
+            border-radius: 24px;
+            padding: 40px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            animation: popIn 0.5s ease;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .modal-content .figurine {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+
+        .modal-content h2 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .modal-content .value {
+            font-size: 32px;
+            color: #fbbf24;
+            font-weight: bold;
+        }
+
+        /* Демо баннер */
+        .demo-banner {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            color: #0a0a0f;
+            padding: 12px;
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        /* Конфетти */
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background: #fbbf24;
+            position: absolute;
+            animation: fall 3s linear;
+        }
+
+        @keyframes fall {
+            to {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Демо баннер -->
+        <div class="demo-banner">
+            🎮 ДЕМО-РЕЖИМ | Виртуальные деньги
+        </div>
+
+        <!-- Лента победителей -->
+        <div class="winners-feed">
+            <h3>🔥 ЖИВАЯ ЛЕНТА ВЫИГРЫШЕЙ</h3>
+            <div id="winners-list"></div>
+        </div>
+
+        <!-- Баланс -->
+        <div class="balance">
+            <h2 id="balance">100 USDT</h2>
+            <p>Демо-баланс</p>
+        </div>
+
+        <!-- Коробки -->
+        <div class="boxes-grid" id="boxes-grid"></div>
+
+        <!-- Кнопки -->
+        <button class="btn btn-primary" onclick="buyBoxes()">
+            📦 КУПИТЬ 5 КОРОБОК (25 USDT)
+        </button>
+        <button class="btn btn-secondary" onclick="openAll()">
+            ⚡ ОТКРЫТЬ ВСЕ
+        </button>
+        <button class="btn btn-secondary" onclick="switchToReal()">
+            💰 ИГРАТЬ НА РЕАЛЬНЫЕ
+        </button>
+    </div>
+
+    <!-- Модальное окно результата -->
+    <div class="modal" id="result-modal">
+        <div class="modal-content">
+            <div class="figurine" id="result-figurine">🏆</div>
+            <h2 id="result-name">Michael Saylor</h2>
+            <div class="value" id="result-value">300 USDT</div>
+            <p id="result-rarity">EPIC</p>
+            <button class="btn btn-primary" onclick="closeModal()" style="margin-top: 20px;">
+                ЗАБРАТЬ
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Telegram WebApp инициализация
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        tg.ready();
+
+        // Данные
+        let balance = 100;
+        let boxes = [];
+        let selectedBoxes = 0;
+
+        // Фигурки
+        const FIGURINES = [
+            { name: 'Doge', emoji: '🐕', value: 5, rarity: 'common', chance: 25 },
+            { name: 'Pepe', emoji: '🐸', value: 8, rarity: 'common', chance: 20 },
+            { name: 'Moon Boy', emoji: '🚀', value: 10, rarity: 'common', chance: 15 },
+            { name: 'Rekt Guy', emoji: '😭', value: 20, rarity: 'common', chance: 10 },
+            { name: 'Whale', emoji: '🦈', value: 50, rarity: 'rare', chance: 10 },
+            { name: 'Elon Musk', emoji: '🚀', value: 150, rarity: 'rare', chance: 8 },
+            { name: 'Michael Saylor', emoji: '🏆', value: 300, rarity: 'epic', chance: 5 },
+            { name: 'Vitalik', emoji: '🌐', value: 500, rarity: 'epic', chance: 4 },
+            { name: 'Satoshi', emoji: '🏛', value: 3000, rarity: 'legendary', chance: 2 },
+            { name: 'CRYPTO GOD', emoji: '👽', value: 25000, rarity: 'jackpot', chance: 1 },
+        ];
+
+        // Инициализация
+        function init() {
+            createBoxes();
+            startWinnersFeed();
+            updateBalance();
+        }
+
+        // Создание коробок
+        function createBoxes() {
+            const grid = document.getElementById('boxes-grid');
+            grid.innerHTML = '';
+            
+            for (let i = 0; i < 50; i++) {
+                const box = document.createElement('div');
+                box.className = 'box';
+                box.innerHTML = '📦';
+                box.onclick = () => selectBox(i, box);
+                grid.appendChild(box);
+            }
+        }
+
+        // Выбор коробки
+        function selectBox(index, element) {
+            if (selectedBoxes >= 10) {
+                alert('Максимум 10 коробок!');
+                return;
+            }
+            
+            element.classList.toggle('selected');
+            if (element.classList.contains('selected')) {
+                selectedBoxes++;
+            } else {
+                selectedBoxes--;
+            }
+        }
+
+        // Покупка коробок
+        function buyBoxes() {
+            if (balance < 25) {
+                alert('Недостаточно средств!');
+                return;
+            }
+            
+            balance -= 25;
+            updateBalance();
+            createBoxes();
+            selectedBoxes = 0;
+            
+            tg.showAlert('Куплено 5 коробок! Выбери 10 из 50.');
+        }
+
+        // Открытие коробок
+        function openAll() {
+            if (selectedBoxes === 0) {
+                alert('Выбери коробки!');
+                return;
+            }
+            
+            // Генерируем результаты
+            const results = [];
+            for (let i = 0; i < selectedBoxes; i++) {
+                results.push(getRandomFigurine());
+            }
+            
+            // Показываем первый результат
+            showResult(results[0]);
+            
+            // Остальные результаты суммарно
+            const totalValue = results.reduce((sum, r) => sum + r.value, 0);
+            balance += totalValue;
+            updateBalance();
+        }
+
+        // Случайная фигурка
+        function getRandomFigurine() {
+            const totalChance = FIGURINES.reduce((sum, f) => sum + f.chance, 0);
+            let random = Math.random() * totalChance;
+            
+            for (const figurine of FIGURINES) {
+                random -= figurine.chance;
+                if (random <= 0) return figurine;
+            }
+            
+            return FIGURINES[0];
+        }
+
+        // Показать результат
+        function showResult(figurine) {
+            document.getElementById('result-figurine').textContent = figurine.emoji;
+            document.getElementById('result-name').textContent = figurine.name;
+            document.getElementById('result-value').textContent = figurine.value + ' USDT';
+            document.getElementById('result-rarity').textContent = figurine.rarity.toUpperCase();
+            
+            document.getElementById('result-modal').classList.add('active');
+            
+            // Конфетти для редких
+            if (figurine.rarity === 'legendary' || figurine.rarity === 'jackpot') {
+                createConfetti();
+            }
+        }
+
+        // Закрыть модалку
+        function closeModal() {
+            document.getElementById('result-modal').classList.remove('active');
+        }
+
+        // Конфетти
+        function createConfetti() {
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + '%';
+                confetti.style.animationDelay = Math.random() * 2 + 's';
+                confetti.style.background = ['#fbbf24', '#a855f7', '#22c55e', '#ef4444'][Math.floor(Math.random() * 4)];
+                document.body.appendChild(confetti);
+                
+                setTimeout(() => confetti.remove(), 3000);
+            }
+        }
+
+        // Обновить баланс
+        function updateBalance() {
+            document.getElementById('balance').textContent = balance.toFixed(0) + ' USDT';
+        }
+
+        // Лента победителей
+        function startWinnersFeed() {
+            const winners = [
+                { name: '@whale_boy', prize: '5,000 USDT', rarity: 'epic' },
+                { name: '@moon_girl', prize: 'Satoshi 🏛', rarity: 'legendary' },
+                { name: '@crypto_fan', prize: '250 USDT', rarity: 'rare' },
+                { name: '@anon_123', prize: '1,000 USDT', rarity: 'epic' },
+                { name: '@diamond_hands', prize: '50 USDT', rarity: 'common' },
+            ];
+            
+            const list = document.getElementById('winners-list');
+            
+            function addWinner() {
+                const winner = winners[Math.floor(Math.random() * winners.length)];
+                const item = document.createElement('div');
+                item.className = `winner-item ${winner.rarity}`;
+                item.innerHTML = `
+                    <span>${winner.name}</span>
+                    <span>${winner.prize}</span>
+                `;
+                
+                list.insertBefore(item, list.firstChild);
+                
+                // Максимум 5 записей
+                while (list.children.length > 5) {
+                    list.removeChild(list.lastChild);
+                }
+            }
+            
+            // Первая запись
+            addWinner();
+            
+            // Обновление каждые 3 секунды
+            setInterval(addWinner, 3000);
+        }
+
+        // Переключение на реальные
+        function switchToReal() {
+            tg.showConfirm('Хочешь играть на реальные деньги? Нужно подключить кошелёк.', (confirmed) => {
+                if (confirmed) {
+                    // Здесь будет интеграция TON Connect
+                    alert('Подключение кошелька... (в разработке)');
+                }
+            });
+        }
+
+        // Запуск
+        init();
+    </script>
+</body>
+</html>

@@ -2,8 +2,8 @@ import logging
 from telegram import Update, WebAppInfo, KeyboardButton, ReplyKeyboardMarkup
 from telegram.ext import Application, CommandHandler, ContextTypes
 
-BOT_TOKEN = "ВСТАВЬ_ТОКЕН_ОТ_BOTFATHER"
-WEB_APP_URL = "https://твой-домен.com"  # Пока можно localhost
+BOT_TOKEN = "8733529051:AAGFHdDbpYqhjUuTIAO79879mhE9ENmFt2s"
+WEB_APP_URL = "https://schrodinger-box.vercel.app"  # Пока можно localhost
 
 logging.basicConfig(level=logging.INFO)
 

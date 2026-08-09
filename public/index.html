@@ -1,486 +1,361 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Schrödinger's Box</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>CRYPTO BOX</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden}
+body{
+  background:radial-gradient(ellipse at 50% 40%,#8b5cf6 0%,#6d3fd4 35%,#4c2a9e 70%,#331b6e 100%);
+  font-family:'Segoe UI',Arial,sans-serif;color:#fff;
+  user-select:none;position:relative;
+}
 
-        body {
-            background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 100%);
-            color: white;
-            font-family: 'Segoe UI', Arial, sans-serif;
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
+/* ===== Лучи света за машиной ===== */
+.rays{position:absolute;left:50%;top:45%;width:900px;height:900px;transform:translate(-50%,-50%);
+  background:conic-gradient(from 0deg,rgba(255,255,255,.14) 0 8deg,transparent 8deg 24deg,
+  rgba(255,255,255,.14) 24deg 32deg,transparent 32deg 48deg,rgba(255,255,255,.14) 48deg 56deg,
+  transparent 56deg 72deg,rgba(255,255,255,.14) 72deg 80deg,transparent 80deg 96deg,
+  rgba(255,255,255,.14) 96deg 104deg,transparent 104deg 120deg,rgba(255,255,255,.14) 120deg 128deg,
+  transparent 128deg 144deg,rgba(255,255,255,.14) 144deg 152deg,transparent 152deg 168deg,
+  rgba(255,255,255,.14) 168deg 176deg,transparent 176deg 192deg,rgba(255,255,255,.14) 192deg 200deg,
+  transparent 200deg 216deg,rgba(255,255,255,.14) 216deg 224deg,transparent 224deg 240deg,
+  rgba(255,255,255,.14) 240deg 248deg,transparent 248deg 264deg,rgba(255,255,255,.14) 264deg 272deg,
+  transparent 272deg 288deg,rgba(255,255,255,.14) 288deg 296deg,transparent 296deg 312deg,
+  rgba(255,255,255,.14) 312deg 320deg,transparent 320deg 336deg,rgba(255,255,255,.14) 336deg 344deg,
+  transparent 344deg 360deg);
+  border-radius:50%;animation:spin 30s linear infinite;pointer-events:none}
+@keyframes spin{to{transform:translate(-50%,-50%) rotate(360deg)}}
 
-        .container {
-            max-width: 500px;
-            margin: 0 auto;
-            padding: 20px;
-        }
+/* ===== Конфетти ===== */
+.confetti{position:absolute;top:-20px;width:10px;height:14px;animation:cfall linear infinite;pointer-events:none}
+@keyframes cfall{to{transform:translateY(110vh) rotate(720deg)}}
 
-        /* Лента победителей */
-        .winners-feed {
-            background: rgba(168, 85, 247, 0.1);
-            border: 1px solid rgba(168, 85, 247, 0.3);
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 20px;
-            overflow: hidden;
-        }
+/* ===== Верхний текст ===== */
+.top-text{position:absolute;top:8px;left:0;right:0;text-align:center;color:#ff3b30;
+  font-size:12px;font-weight:bold;text-shadow:0 0 8px rgba(255,59,48,.7);z-index:5}
 
-        .winners-feed h3 {
-            color: #a855f7;
-            font-size: 14px;
-            margin-bottom: 10px;
-            text-align: center;
-        }
+/* ===== Лента победителей ===== */
+.ticker{position:absolute;top:26px;left:0;right:0;overflow:hidden;height:22px;z-index:5;
+  background:rgba(0,0,0,.25)}
+.ticker-track{display:inline-block;white-space:nowrap;animation:tick 25s linear infinite;font-size:12px;line-height:22px}
+@keyframes tick{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.ticker b{color:#ffd76a}
 
-        .winner-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-            font-size: 13px;
-            animation: slideIn 0.5s ease;
-        }
+/* ===== Инвентарь слева ===== */
+.inventory{position:absolute;left:10px;top:70px;display:flex;flex-direction:column;gap:8px;z-index:6}
+.inv-title{font-size:10px;letter-spacing:2px;color:#ffd76a;text-align:center;opacity:.8}
+.inv-item{width:56px;height:56px;border-radius:12px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;font-size:26px;
+  background:linear-gradient(160deg,rgba(255,255,255,.22),rgba(255,255,255,.06));
+  border:2px solid;animation:invpop .4s cubic-bezier(.2,1.6,.4,1)}
+.inv-item span{font-size:9px;font-weight:bold;margin-top:2px}
+@keyframes invpop{from{transform:scale(0) rotate(-180deg)}to{transform:scale(1) rotate(0)}}
+.r-common{border-color:#9aa4b5}.r-rare{border-color:#3b9dff;box-shadow:0 0 10px #3b9dff88}
+.r-epic{border-color:#b45cff;box-shadow:0 0 12px #b45cff88}.r-legendary{border-color:#ffd76a;box-shadow:0 0 14px #ffd76a}
+.r-jackpot{border-color:#ff3b30;box-shadow:0 0 18px #ff3b30}
 
-        .winner-item:last-child {
-            border-bottom: none;
-        }
+/* ===== МАШИНА ===== */
+.machine{position:absolute;left:50%;top:52%;transform:translate(-50%,-50%);width:340px;z-index:4}
+.machine.shaking{animation:shake .5s ease}
+@keyframes shake{0%,100%{transform:translate(-50%,-50%)}20%{transform:translate(-52%,-50%) rotate(-1.5deg)}
+40%{transform:translate(-48%,-50%) rotate(1.5deg)}60%{transform:translate(-52%,-50%) rotate(-1deg)}80%{transform:translate(-48%,-50%) rotate(1deg)}}
 
-        .winner-item.epic {
-            color: #a855f7;
-            text-shadow: 0 0 10px rgba(168, 85, 247, 0.5);
-        }
+/* Купол */
+.dome{position:relative;width:300px;height:170px;margin:0 auto;
+  background:radial-gradient(ellipse at 50% 20%,rgba(255,255,255,.5),rgba(255,255,255,.12) 45%,rgba(255,255,255,.05));
+  border-radius:150px 150px 0 0;border:3px solid rgba(255,255,255,.5);
+  box-shadow:inset 0 -20px 40px rgba(120,60,200,.25),0 0 30px rgba(255,255,255,.25);overflow:hidden}
+.dome.glow{box-shadow:inset 0 -20px 40px rgba(255,220,100,.5),0 0 60px #ffd76a}
+.d-char{position:absolute;font-size:44px;filter:drop-shadow(0 4px 6px rgba(0,0,0,.3));animation:bob 3s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.d-coin{position:absolute;width:44px;height:44px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#ffe9a8,#f7c948 55%,#c99212);
+  border:2px solid #a87708;display:flex;align-items:center;justify-content:center;
+  font-weight:900;color:#8a6206;font-size:22px;box-shadow:0 3px 8px rgba(0,0,0,.3)}
 
-        .winner-item.legendary {
-            color: #fbbf24;
-            text-shadow: 0 0 10px rgba(251, 191, 36, 0.5);
-        }
+/* Корпус */
+.body{background:linear-gradient(180deg,#ffe9a8 0%,#f7c948 30%,#d9a520 60%,#b9860f 100%);
+  border-radius:18px 18px 26px 26px;padding:14px 18px 20px;
+  box-shadow:0 18px 50px rgba(0,0,0,.5),inset 0 3px 6px rgba(255,255,255,.6),inset 0 -8px 16px rgba(120,70,0,.4)}
+.logo{text-align:center;font-size:30px;font-weight:900;letter-spacing:3px;color:#7a4d00;
+  text-shadow:0 2px 0 #ffe9a8,0 -1px 0 #8a5c00;margin-bottom:10px}
+.logo small{font-size:16px;vertical-align:middle}
 
-        @keyframes slideIn {
-            from { transform: translateY(-20px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
+/* LED дисплеи */
+.leds{display:flex;justify-content:space-between;gap:10px;margin-bottom:14px}
+.led{flex:1;background:#2a0f08;border-radius:8px;border:2px solid #8a5c00;padding:5px 8px;
+  font-family:monospace;font-size:13px;color:#ff5522;text-shadow:0 0 8px #ff5522;text-align:center}
+.led b{color:#ff8855}
 
-        /* Баланс */
-        .balance {
-            background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%);
-            border-radius: 16px;
-            padding: 20px;
-            text-align: center;
-            margin-bottom: 20px;
-        }
+/* Кнопки */
+.btns{display:flex;justify-content:space-between;gap:16px}
+.mbtn{flex:1;height:64px;border-radius:32px;border:none;cursor:pointer;position:relative;
+  background:radial-gradient(circle at 50% 28%,#ff8a75,#e83a25 55%,#a81505);
+  box-shadow:0 6px 0 #7a0e02,0 10px 24px rgba(0,0,0,.5),inset 0 4px 8px rgba(255,255,255,.5);
+  color:#fff;font-size:20px;font-weight:900;letter-spacing:2px;
+  text-shadow:0 2px 4px rgba(0,0,0,.5);transition:transform .08s,box-shadow .08s}
+.mbtn:active{transform:translateY(5px);box-shadow:0 1px 0 #7a0e02,0 4px 12px rgba(0,0,0,.5)}
+.mbtn:disabled{filter:grayscale(.6) brightness(.7);cursor:not-allowed}
 
-        .balance h2 {
-            font-size: 32px;
-            margin-bottom: 5px;
-        }
+/* ===== Сцена открытия ===== */
+.stage{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%);z-index:8;pointer-events:none}
+.drop-box{width:70px;height:70px;border-radius:14px;position:relative;
+  background:linear-gradient(160deg,#ffe9a8,#f7c948 50%,#c99212);
+  border:3px solid #a87708;display:flex;align-items:center;justify-content:center;
+  font-size:34px;box-shadow:0 0 30px #ffd76a;animation:drop .6s cubic-bezier(.5,0,1,1)}
+@keyframes drop{from{transform:translateY(-160px) scale(.6);opacity:0}to{transform:translateY(0) scale(1);opacity:1}}
+.drop-box.landed{animation:wiggle .5s ease}
+@keyframes wiggle{0%,100%{transform:rotate(0)}25%{transform:rotate(-10deg) scale(1.05)}75%{transform:rotate(10deg) scale(1.1)}}
+.drop-box.burst{animation:burst .4s ease forwards}
+@keyframes burst{to{transform:scale(2.2);opacity:0}}
+.particle{position:absolute;width:12px;height:12px;border-radius:3px;animation:part .8s ease-out forwards}
+@keyframes part{to{transform:translate(var(--dx),var(--dy)) rotate(540deg);opacity:0}}
 
-        .balance p {
-            font-size: 14px;
-            opacity: 0.8;
-        }
+/* Вылет приза */
+.prize-fly{position:fixed;z-index:20;font-size:50px;pointer-events:none;
+  filter:drop-shadow(0 0 20px #ffd76a);transition:all .9s cubic-bezier(.4,0,.6,1)}
 
-        /* Коробки */
-        .boxes-grid {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 10px;
-            margin-bottom: 20px;
-        }
+/* ===== Танцор ===== */
+.dancer{position:absolute;right:16px;bottom:70px;font-size:96px;z-index:5;
+  animation:dance 1s ease-in-out infinite;filter:drop-shadow(0 0 24px rgba(255,215,106,.6))}
+@keyframes dance{0%,100%{transform:rotate(-10deg) translateY(0)}50%{transform:rotate(10deg) translateY(-10px)}}
 
-        .box {
-            aspect-ratio: 1;
-            background: linear-gradient(135deg, #1e1e2e 0%, #2a2a3e 100%);
-            border: 2px solid #a855f7;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 32px;
-            cursor: pointer;
-            transition: all 0.3s;
-            position: relative;
-        }
+/* ===== Баннер результата ===== */
+.result{position:fixed;left:50%;top:16%;transform:translateX(-50%) scale(0);z-index:30;
+  background:linear-gradient(160deg,rgba(40,20,80,.95),rgba(25,10,55,.95));
+  border:3px solid;border-radius:20px;padding:18px 34px;text-align:center;
+  transition:transform .35s cubic-bezier(.2,1.6,.4,1)}
+.result.show{transform:translateX(-50%) scale(1)}
+.result .em{font-size:64px}
+.result .nm{font-size:18px;font-weight:bold;margin:4px 0}
+.result .vl{font-size:26px;font-weight:900;color:#ffd76a}
+.result .rr{font-size:11px;letter-spacing:3px;margin-top:4px}
 
-        .box:hover {
-            transform: scale(1.1);
-            box-shadow: 0 0 20px rgba(168, 85, 247, 0.5);
-        }
+/* Вспышка джекпота */
+.flash{position:fixed;inset:0;background:radial-gradient(circle,#fff,#ffd76a 40%,transparent 75%);
+  z-index:25;opacity:0;pointer-events:none}
+.flash.on{animation:fl .9s ease}
+@keyframes fl{0%{opacity:0}20%{opacity:1}100%{opacity:0}}
 
-        .box.opened {
-            opacity: 0.3;
-            pointer-events: none;
-        }
-
-        .box.selected {
-            border-color: #fbbf24;
-            box-shadow: 0 0 20px rgba(251, 191, 36, 0.5);
-        }
-
-        /* Кнопки */
-        .btn {
-            width: 100%;
-            padding: 18px;
-            border: none;
-            border-radius: 12px;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s;
-            margin-bottom: 10px;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            transform: scale(1.02);
-            box-shadow: 0 0 30px rgba(168, 85, 247, 0.5);
-        }
-
-        .btn-secondary {
-            background: rgba(255,255,255,0.1);
-            color: white;
-            border: 1px solid rgba(255,255,255,0.2);
-        }
-
-        /* Модальное окно результата */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.9);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .modal.active {
-            display: flex;
-        }
-
-        .modal-content {
-            background: linear-gradient(135deg, #1e1e2e 0%, #2a2a3e 100%);
-            border: 3px solid #a855f7;
-            border-radius: 24px;
-            padding: 40px;
-            text-align: center;
-            max-width: 400px;
-            width: 90%;
-            animation: popIn 0.5s ease;
-        }
-
-        @keyframes popIn {
-            0% { transform: scale(0); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
-        }
-
-        .modal-content .figurine {
-            font-size: 80px;
-            margin-bottom: 20px;
-        }
-
-        .modal-content h2 {
-            font-size: 24px;
-            margin-bottom: 10px;
-        }
-
-        .modal-content .value {
-            font-size: 32px;
-            color: #fbbf24;
-            font-weight: bold;
-        }
-
-        /* Демо баннер */
-        .demo-banner {
-            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-            color: #0a0a0f;
-            padding: 12px;
-            border-radius: 12px;
-            text-align: center;
-            margin-bottom: 20px;
-            font-weight: bold;
-        }
-
-        /* Конфетти */
-        .confetti {
-            position: fixed;
-            width: 10px;
-            height: 10px;
-            background: #fbbf24;
-            position: absolute;
-            animation: fall 3s linear;
-        }
-
-        @keyframes fall {
-            to {
-                transform: translateY(100vh) rotate(360deg);
-                opacity: 0;
-            }
-        }
-    </style>
+/* ===== Нижняя панель ===== */
+.bottom-bar{position:fixed;bottom:0;left:0;right:0;z-index:10;display:flex;align-items:center;
+  justify-content:space-between;padding:8px 12px;background:linear-gradient(180deg,#2a1660,#1a0d40);
+  border-top:3px solid #ffd76a;font-size:13px}
+.stat b{color:#ffd76a}
+.deposit{background:linear-gradient(180deg,#ff9a3d,#f76a10);border:none;border-radius:20px;
+  padding:8px 16px;color:#fff;font-weight:900;font-size:12px;letter-spacing:1px;cursor:pointer;
+  box-shadow:0 3px 0 #b34a05}
+</style>
 </head>
 <body>
-    <div class="container">
-        <!-- Демо баннер -->
-        <div class="demo-banner">
-            🎮 ДЕМО-РЕЖИМ | Виртуальные деньги
-        </div>
 
-        <!-- Лента победителей -->
-        <div class="winners-feed">
-            <h3>🔥 ЖИВАЯ ЛЕНТА ВЫИГРЫШЕЙ</h3>
-            <div id="winners-list"></div>
-        </div>
+<div class="rays"></div>
+<div class="top-text">КАЖДАЯ КОРОБКА СОДЕРЖИТ СЛУЧАЙНУЮ КРИПТО-ФИГУРКУ С ПРИЗОМ В BTC</div>
+<div class="ticker"><div class="ticker-track" id="ticker"></div></div>
 
-        <!-- Баланс -->
-        <div class="balance">
-            <h2 id="balance">100 USDT</h2>
-            <p>Демо-баланс</p>
-        </div>
+<div class="inventory" id="inventory"><div class="inv-title">ТВОЙ ЛУТ</div></div>
 
-        <!-- Коробки -->
-        <div class="boxes-grid" id="boxes-grid"></div>
-
-        <!-- Кнопки -->
-        <button class="btn btn-primary" onclick="buyBoxes()">
-            📦 КУПИТЬ 5 КОРОБОК (25 USDT)
-        </button>
-        <button class="btn btn-secondary" onclick="openAll()">
-            ⚡ ОТКРЫТЬ ВСЕ
-        </button>
-        <button class="btn btn-secondary" onclick="switchToReal()">
-            💰 ИГРАТЬ НА РЕАЛЬНЫЕ
-        </button>
+<div class="machine" id="machine">
+  <div class="dome" id="dome">
+    <div class="d-char" style="left:30px;top:50px">🐕</div>
+    <div class="d-char" style="left:110px;top:30px;font-size:52px">🐸</div>
+    <div class="d-char" style="left:190px;top:55px">🐸</div>
+    <div class="d-coin" style="left:70px;top:105px">₿</div>
+    <div class="d-coin" style="left:140px;top:112px">₿</div>
+    <div class="d-coin" style="left:205px;top:102px">₿</div>
+  </div>
+  <div class="body">
+    <div class="logo">CRYPTO <small>₿</small> BOX</div>
+    <div class="leds">
+      <div class="led">КОРОБКИ: <b id="led-boxes">0</b></div>
+      <div class="led">ДЖЕКПОТ: <b id="led-pool">0</b></div>
     </div>
-
-    <!-- Модальное окно результата -->
-    <div class="modal" id="result-modal">
-        <div class="modal-content">
-            <div class="figurine" id="result-figurine">🏆</div>
-            <h2 id="result-name">Michael Saylor</h2>
-            <div class="value" id="result-value">300 USDT</div>
-            <p id="result-rarity">EPIC</p>
-            <button class="btn btn-primary" onclick="closeModal()" style="margin-top: 20px;">
-                ЗАБРАТЬ
-            </button>
-        </div>
+    <div class="btns">
+      <button class="mbtn" id="btn-buy">BUY</button>
+      <button class="mbtn" id="btn-open">OPEN</button>
     </div>
+  </div>
+</div>
 
-    <script>
-        // Telegram WebApp инициализация
-        const tg = window.Telegram.WebApp;
-        tg.expand();
-        tg.ready();
+<div class="stage" id="stage"></div>
+<div class="dancer">🕺</div>
+<div class="result" id="result">
+  <div class="em" id="r-em">🏆</div>
+  <div class="nm" id="r-nm">Saylor</div>
+  <div class="vl" id="r-vl">+40 USDT</div>
+  <div class="rr" id="r-rr">EPIC</div>
+</div>
+<div class="flash" id="flash"></div>
 
-        // Данные
-        let balance = 100;
-        let boxes = [];
-        let selectedBoxes = 0;
+<div class="bottom-bar">
+  <div class="stat">💰 <b id="bal">100</b> USDT</div>
+  <div class="stat">₿ <b id="sats">240 000</b> sats</div>
+  <div class="stat">⭐ LVL <b>1</b></div>
+  <button class="deposit" id="btn-deposit">ПОПОЛНИТЬ</button>
+</div>
 
-        // Фигурки
-        const FIGURINES = [
-            { name: 'Doge', emoji: '🐕', value: 5, rarity: 'common', chance: 25 },
-            { name: 'Pepe', emoji: '🐸', value: 8, rarity: 'common', chance: 20 },
-            { name: 'Moon Boy', emoji: '🚀', value: 10, rarity: 'common', chance: 15 },
-            { name: 'Rekt Guy', emoji: '😭', value: 20, rarity: 'common', chance: 10 },
-            { name: 'Whale', emoji: '🦈', value: 50, rarity: 'rare', chance: 10 },
-            { name: 'Elon Musk', emoji: '🚀', value: 150, rarity: 'rare', chance: 8 },
-            { name: 'Michael Saylor', emoji: '🏆', value: 300, rarity: 'epic', chance: 5 },
-            { name: 'Vitalik', emoji: '🌐', value: 500, rarity: 'epic', chance: 4 },
-            { name: 'Satoshi', emoji: '🏛', value: 3000, rarity: 'legendary', chance: 2 },
-            { name: 'CRYPTO GOD', emoji: '👽', value: 25000, rarity: 'jackpot', chance: 1 },
-        ];
+<script>
+const tg = window.Telegram && window.Telegram.WebApp;
+if (tg) { tg.expand(); tg.ready(); }
 
-        // Инициализация
-        function init() {
-            createBoxes();
-            startWinnersFeed();
-            updateBalance();
-        }
+// ===== ЭКОНОМИКА: RTP 88%, маржа платформы 12% =====
+const TIERS = [
+  {chance:70,  value:1,   rarity:'common',    items:[['🐕','Doge'],['🐸','Pepe']]},
+  {chance:20,  value:3,   rarity:'common',    items:[['🚀','Moon Boy'],['😭','Rekt']]},
+  {chance:7,   value:10,  rarity:'rare',      items:[['🦈','Whale'],['💎','Diamond']]},
+  {chance:2.5, value:40,  rarity:'epic',      items:[['🏆','Saylor'],['🌐','Vitalik']]},
+  {chance:0.4, value:150, rarity:'legendary', items:[['🏛','Satoshi']]},
+  {chance:0.1, value:800, rarity:'jackpot',   items:[['👽','CRYPTO GOD']]},
+];
+const RAR_COLORS = {common:'#9aa4b5',rare:'#3b9dff',epic:'#b45cff',legendary:'#ffd76a',jackpot:'#ff3b30'};
+const BOX_PRICE = 5;
 
-        // Создание коробок
-        function createBoxes() {
-            const grid = document.getElementById('boxes-grid');
-            grid.innerHTML = '';
-            
-            for (let i = 0; i < 50; i++) {
-                const box = document.createElement('div');
-                box.className = 'box';
-                box.innerHTML = '📦';
-                box.onclick = () => selectBox(i, box);
-                grid.appendChild(box);
-            }
-        }
+let balance = 100, boxes = 0, pool = 1250, busy = false;
 
-        // Выбор коробки
-        function selectBox(index, element) {
-            if (selectedBoxes >= 10) {
-                alert('Максимум 10 коробок!');
-                return;
-            }
-            
-            element.classList.toggle('selected');
-            if (element.classList.contains('selected')) {
-                selectedBoxes++;
-            } else {
-                selectedBoxes--;
-            }
-        }
+const $ = id => document.getElementById(id);
 
-        // Покупка коробок
-        function buyBoxes() {
-            if (balance < 25) {
-                alert('Недостаточно средств!');
-                return;
-            }
-            
-            balance -= 25;
-            updateBalance();
-            createBoxes();
-            selectedBoxes = 0;
-            
-            tg.showAlert('Куплено 5 коробок! Выбери 10 из 50.');
-        }
+function updateUI(){
+  $('bal').textContent = balance;
+  $('sats').textContent = (balance*2400).toLocaleString('ru-RU');
+  $('led-boxes').textContent = boxes;
+  $('led-pool').textContent = pool.toLocaleString('ru-RU');
+  $('btn-open').disabled = boxes<=0;
+}
 
-        // Открытие коробок
-        function openAll() {
-            if (selectedBoxes === 0) {
-                alert('Выбери коробки!');
-                return;
-            }
-            
-            // Генерируем результаты
-            const results = [];
-            for (let i = 0; i < selectedBoxes; i++) {
-                results.push(getRandomFigurine());
-            }
-            
-            // Показываем первый результат
-            showResult(results[0]);
-            
-            // Остальные результаты суммарно
-            const totalValue = results.reduce((sum, r) => sum + r.value, 0);
-            balance += totalValue;
-            updateBalance();
-        }
+// ===== Конфетти фон =====
+(function(){
+  const colors=['#ff3b30','#ffd76a','#3b9dff','#4cd964','#ff9a3d','#b45cff'];
+  for(let i=0;i<40;i++){
+    const c=document.createElement('div');
+    c.className='confetti';
+    c.style.left=Math.random()*100+'%';
+    c.style.background=colors[i%6];
+    c.style.animationDuration=(4+Math.random()*5)+'s';
+    c.style.animationDelay=(-Math.random()*8)+'s';
+    document.body.appendChild(c);
+  }
+})();
 
-        // Случайная фигурка
-        function getRandomFigurine() {
-            const totalChance = FIGURINES.reduce((sum, f) => sum + f.chance, 0);
-            let random = Math.random() * totalChance;
-            
-            for (const figurine of FIGURINES) {
-                random -= figurine.chance;
-                if (random <= 0) return figurine;
-            }
-            
-            return FIGURINES[0];
-        }
+// ===== Лента победителей =====
+(function(){
+  const w=[['@whale_boy','5 000 USDT'],['@moon_girl','Satoshi 🏛'],['@crypto_fan','150 USDT'],
+           ['@anon_123','800 USDT 💎'],['@diamond','40 USDT'],['@pepe_fan','10 USDT']];
+  let html='';
+  for(let r=0;r<2;r++) w.forEach(x=>html+=`&nbsp;&nbsp;🎉 <b>${x[0]}</b> выбил <b>${x[1]}</b> &nbsp;•&nbsp;`);
+  $('ticker').innerHTML=html;
+})();
 
-        // Показать результат
-        function showResult(figurine) {
-            document.getElementById('result-figurine').textContent = figurine.emoji;
-            document.getElementById('result-name').textContent = figurine.name;
-            document.getElementById('result-value').textContent = figurine.value + ' USDT';
-            document.getElementById('result-rarity').textContent = figurine.rarity.toUpperCase();
-            
-            document.getElementById('result-modal').classList.add('active');
-            
-            // Конфетти для редких
-            if (figurine.rarity === 'legendary' || figurine.rarity === 'jackpot') {
-                createConfetti();
-            }
-        }
+// ===== Покупка =====
+$('btn-buy').onclick = () => {
+  if (busy) return;
+  if (balance < BOX_PRICE) { flashResult('😢','Не хватает USDT','Пополни счёт','common'); return; }
+  balance -= BOX_PRICE;
+  boxes++;
+  pool += 1; // джекпот-пул растёт
+  updateUI();
+  const m=$('machine'); m.classList.remove('shaking'); void m.offsetWidth; m.classList.add('shaking');
+  if (tg) tg.HapticFeedback && tg.HapticFeedback.impactOccurred('light');
+};
 
-        // Закрыть модалку
-        function closeModal() {
-            document.getElementById('result-modal').classList.remove('active');
-        }
+// ===== Открытие (механика Warface) =====
+$('btn-open').onclick = () => {
+  if (busy || boxes<=0) return;
+  busy = true; boxes--; updateUI();
 
-        // Конфетти
-        function createConfetti() {
-            for (let i = 0; i < 50; i++) {
-                const confetti = document.createElement('div');
-                confetti.className = 'confetti';
-                confetti.style.left = Math.random() * 100 + '%';
-                confetti.style.animationDelay = Math.random() * 2 + 's';
-                confetti.style.background = ['#fbbf24', '#a855f7', '#22c55e', '#ef4444'][Math.floor(Math.random() * 4)];
-                document.body.appendChild(confetti);
-                
-                setTimeout(() => confetti.remove(), 3000);
-            }
-        }
+  const m=$('machine'), dome=$('dome'), stage=$('stage');
+  m.classList.add('shaking');
+  dome.classList.add('glow');
 
-        // Обновить баланс
-        function updateBalance() {
-            document.getElementById('balance').textContent = balance.toFixed(0) + ' USDT';
-        }
+  // Коробка падает из купола
+  const box=document.createElement('div');
+  box.className='drop-box'; box.textContent='📦';
+  stage.appendChild(box);
 
-        // Лента победителей
-        function startWinnersFeed() {
-            const winners = [
-                { name: '@whale_boy', prize: '5,000 USDT', rarity: 'epic' },
-                { name: '@moon_girl', prize: 'Satoshi 🏛', rarity: 'legendary' },
-                { name: '@crypto_fan', prize: '250 USDT', rarity: 'rare' },
-                { name: '@anon_123', prize: '1,000 USDT', rarity: 'epic' },
-                { name: '@diamond_hands', prize: '50 USDT', rarity: 'common' },
-            ];
-            
-            const list = document.getElementById('winners-list');
-            
-            function addWinner() {
-                const winner = winners[Math.floor(Math.random() * winners.length)];
-                const item = document.createElement('div');
-                item.className = `winner-item ${winner.rarity}`;
-                item.innerHTML = `
-                    <span>${winner.name}</span>
-                    <span>${winner.prize}</span>
-                `;
-                
-                list.insertBefore(item, list.firstChild);
-                
-                // Максимум 5 записей
-                while (list.children.length > 5) {
-                    list.removeChild(list.lastChild);
-                }
-            }
-            
-            // Первая запись
-            addWinner();
-            
-            // Обновление каждые 3 секунды
-            setInterval(addWinner, 3000);
-        }
+  setTimeout(()=>{ m.classList.remove('shaking'); box.classList.add('landed'); },600);
+  setTimeout(()=>{ box.classList.add('burst'); particles(stage); },1200);
+  setTimeout(()=>{
+    box.remove(); dome.classList.remove('glow');
+    const prize = roll();
+    balance += prize.value;
+    showResult(prize);
+    flyToInventory(prize);
+    if (prize.rarity==='jackpot'){ $('flash').classList.add('on'); setTimeout(()=>$('flash').classList.remove('on'),900); pool=1000; }
+    updateUI();
+    busy=false;
+  },1650);
+};
 
-        // Переключение на реальные
-        function switchToReal() {
-            tg.showConfirm('Хочешь играть на реальные деньги? Нужно подключить кошелёк.', (confirmed) => {
-                if (confirmed) {
-                    // Здесь будет интеграция TON Connect
-                    alert('Подключение кошелька... (в разработке)');
-                }
-            });
-        }
+function roll(){
+  const total=TIERS.reduce((s,t)=>s+t.chance,0);
+  let r=Math.random()*total;
+  for(const t of TIERS){ r-=t.chance; if(r<=0){
+    const it=t.items[Math.floor(Math.random()*t.items.length)];
+    return {value:t.value, rarity:t.rarity, emoji:it[0], name:it[1]};
+  }}
+}
 
-        // Запуск
-        init();
-    </script>
+function particles(parent){
+  const colors=['#ffd76a','#ff3b30','#3b9dff','#4cd964','#b45cff'];
+  for(let i=0;i<24;i++){
+    const p=document.createElement('div');
+    p.className='particle';
+    p.style.background=colors[i%5];
+    p.style.left='50%'; p.style.top='50%';
+    p.style.setProperty('--dx',(Math.random()*300-150)+'px');
+    p.style.setProperty('--dy',(Math.random()*300-150)+'px');
+    parent.appendChild(p);
+    setTimeout(()=>p.remove(),800);
+  }
+}
+
+function showResult(p){
+  $('r-em').textContent=p.emoji;
+  $('r-nm').textContent=p.name;
+  $('r-vl').textContent='+'+p.value+' USDT';
+  $('r-rr').textContent=p.rarity.toUpperCase();
+  const res=$('result');
+  res.style.borderColor=RAR_COLORS[p.rarity];
+  $('r-rr').style.color=RAR_COLORS[p.rarity];
+  res.classList.add('show');
+  setTimeout(()=>res.classList.remove('show'),2200);
+  if (tg) tg.HapticFeedback && tg.HapticFeedback.notificationOccurred(p.value>=40?'success':'warning');
+}
+
+function flyToInventory(p){
+  const fly=document.createElement('div');
+  fly.className='prize-fly'; fly.textContent=p.emoji;
+  fly.style.left='50%'; fly.style.top='40%';
+  document.body.appendChild(fly);
+  requestAnimationFrame(()=>{ 
+    fly.style.left='38px'; fly.style.top=(90+Math.min(invCount(),8)*64)+'px'; fly.style.fontSize='30px';
+  });
+  setTimeout(()=>{
+    fly.remove();
+    const inv=$('inventory');
+    const el=document.createElement('div');
+    el.className='inv-item r-'+p.rarity;
+    el.innerHTML=p.emoji+'<span style="color:'+RAR_COLORS[p.rarity]+'">'+p.value+'</span>';
+    inv.appendChild(el);
+    while(inv.children.length>9) inv.removeChild(inv.children[1]);
+  },900);
+}
+let invC=0; function invCount(){return invC++;}
+
+$('btn-deposit').onclick = () => {
+  flashResult('💳','Оплата любой криптой','USDT / TON / BTC через TG Wallet — скоро','rare');
+};
+function flashResult(em,nm,vl,rr){
+  $('r-em').textContent=em; $('r-nm').textContent=nm; $('r-vl').textContent=vl;
+  $('r-rr').textContent=rr.toUpperCase();
+  const res=$('result'); res.style.borderColor=RAR_COLORS[rr];
+  res.classList.add('show'); setTimeout(()=>res.classList.remove('show'),2200);
+}
+
+updateUI();
+</script>
 </body>
 </html>
